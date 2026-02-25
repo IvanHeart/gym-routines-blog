@@ -211,6 +211,7 @@ export const ImageCropPicker = forwardRef<ImageCropPickerHandle, ImageCropPicker
             }}
             onTouchStart={(e) => {
               const t = e.touches[0]
+              if (!t) return
               dragRef.current = {
                 active: true,
                 mx: t.clientX,
