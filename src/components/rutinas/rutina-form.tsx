@@ -97,10 +97,30 @@ export function RutinaForm({
     [action, cropPickerRef, form, startTransition]
   )
 
+  // Wrap form.handleSubmit to catch ZodErrors that escape the resolver
+  // (@hookform/resolvers v3.9 + Zod v4: instanceof check fails, error is rethrown)
+  const onFormSubmit = useCallback(
+    async (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault()
+      setServerError(null)
+      try {
+        await form.handleSubmit(handleSubmit)(e)
+      } catch (err: unknown) {
+        if (err && typeof err === 'object' && 'issues' in err) {
+          type ZodIssue = { path: (string | number)[]; message: string }
+          const messages = (err as { issues: ZodIssue[] }).issues.map((i) => i.message)
+          setServerError(messages.join(' · '))
+        } else {
+          setServerError('Error inesperado. Intenta de nuevo.')
+        }
+      }
+    },
+    [form, handleSubmit]
+  )
+
   return (
     <Form {...form}>
-      {/* eslint-disable-next-line react-hooks/refs -- handleSubmit only accesses ref in event handler, not during render */}
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8" noValidate>
+      <form onSubmit={onFormSubmit} className="space-y-8" noValidate>
         {/* Error global del servidor */}
         {serverError && (
           <Alert variant="destructive">

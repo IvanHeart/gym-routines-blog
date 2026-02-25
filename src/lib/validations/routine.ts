@@ -5,7 +5,13 @@ export const exerciseSchema = z.object({
   name: z.string().min(1, 'El nombre es obligatorio').max(100),
   sets: z.coerce.number().int().min(1).max(99).nullable().optional(),
   reps: z.string().max(20).nullable().optional(),
-  rest_seconds: z.coerce.number().int().min(0).max(600).nullable().optional(),
+  rest_seconds: z.coerce
+    .number()
+    .int()
+    .min(0)
+    .max(600, 'El descanso no puede superar 600 segundos')
+    .nullable()
+    .optional(),
   notes: z.string().max(300).nullable().optional(),
   order_index: z.number().int().min(0),
 })
