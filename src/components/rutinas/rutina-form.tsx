@@ -1,11 +1,8 @@
 'use client'
 
-import { useRef, useState, useTransition } from 'react'
+import { useCallback, useRef, useState, useTransition } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { toast } from 'sonner'
-import { ImagePlus, X } from 'lucide-react'
-import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -28,8 +25,8 @@ import {
 } from '@/components/ui/select'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { ExerciseBuilder } from '@/components/rutinas/exercise-builder'
+import { ImageCropPicker, type ImageCropPickerHandle } from '@/components/rutinas/image-crop-picker'
 import { routineSchema, type RoutineFormValues } from '@/lib/validations/routine'
-import { validateImageFile } from '@/lib/utils/image'
 import type { Category } from '@/types/entities'
 import type { ActionResult } from '@/types/api'
 
@@ -48,9 +45,7 @@ export function RutinaForm({
 }: RutinaFormProps) {
   const [isPending, startTransition] = useTransition()
   const [serverError, setServerError] = useState<string | null>(null)
-  const [imagePreview, setImagePreview] = useState<string | null>(null)
-  const [imageFile, setImageFile] = useState<File | null>(null)
-  const imageInputRef = useRef<HTMLInputElement>(null)
+  const cropPickerRef = useRef<ImageCropPickerHandle>(null)
 
   const form = useForm<RoutineFormValues>({
     resolver: zodResolver(routineSchema),
@@ -67,54 +62,44 @@ export function RutinaForm({
     },
   })
 
-  function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
-    const validation = validateImageFile(file)
-    if (!validation.valid) {
-      toast.error(validation.error)
-      return
-    }
-    setImageFile(file)
-    setImagePreview(URL.createObjectURL(file))
-  }
+  const handleSubmit = useCallback(
+    async (values: RoutineFormValues) => {
+      setServerError(null)
 
-  function removeImage() {
-    setImageFile(null)
-    setImagePreview(null)
-    if (imageInputRef.current) imageInputRef.current.value = ''
-  }
+      // Crop the visible area before starting the transition
+      const croppedFile = (await cropPickerRef.current?.getCroppedFile()) ?? null
 
-  async function handleSubmit(values: RoutineFormValues) {
-    setServerError(null)
-    const formData = new FormData()
-    formData.append('title', values.title)
-    formData.append('excerpt', values.excerpt ?? '')
-    formData.append('content', values.content)
-    formData.append('difficulty', values.difficulty)
-    formData.append('duration_minutes', values.duration_minutes?.toString() ?? '')
-    formData.append('category_id', values.category_id ?? '')
-    formData.append('published', String(values.published))
-    formData.append('exercises', JSON.stringify(values.exercises))
-    if (imageFile) formData.append('cover_image', imageFile)
+      const formData = new FormData()
+      formData.append('title', values.title)
+      formData.append('excerpt', values.excerpt ?? '')
+      formData.append('content', values.content)
+      formData.append('difficulty', values.difficulty)
+      formData.append('duration_minutes', values.duration_minutes?.toString() ?? '')
+      formData.append('category_id', values.category_id ?? '')
+      formData.append('published', String(values.published))
+      formData.append('exercises', JSON.stringify(values.exercises))
+      if (croppedFile) formData.append('cover_image', croppedFile)
 
-    startTransition(async () => {
-      const result = await action(null, formData)
-      if (!result.success) {
-        setServerError(result.error)
-        if (result.errors) {
-          Object.entries(result.errors).forEach(([field, messages]) => {
-            form.setError(field as keyof RoutineFormValues, {
-              message: messages?.[0] ?? 'Error en este campo',
+      startTransition(async () => {
+        const result = await action(null, formData)
+        if (!result.success) {
+          setServerError(result.error)
+          if (result.errors) {
+            Object.entries(result.errors).forEach(([field, messages]) => {
+              form.setError(field as keyof RoutineFormValues, {
+                message: messages?.[0] ?? 'Error en este campo',
+              })
             })
-          })
+          }
         }
-      }
-    })
-  }
+      })
+    },
+    [action, cropPickerRef, form, startTransition]
+  )
 
   return (
     <Form {...form}>
+      {/* eslint-disable-next-line react-hooks/refs -- handleSubmit only accesses ref in event handler, not during render */}
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8" noValidate>
         {/* Error global del servidor */}
         {serverError && (
@@ -126,38 +111,7 @@ export function RutinaForm({
         {/* Imagen de portada */}
         <div className="space-y-2">
           <p className="text-sm font-medium">Imagen de portada</p>
-          {imagePreview ? (
-            <div className="relative h-48 w-full overflow-hidden rounded-lg border border-border">
-              <Image src={imagePreview} alt="Vista previa" fill className="object-cover" />
-              <Button
-                type="button"
-                variant="secondary"
-                size="icon"
-                onClick={removeImage}
-                className="absolute right-2 top-2 h-7 w-7"
-                aria-label="Eliminar imagen"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-          ) : (
-            <button
-              type="button"
-              onClick={() => imageInputRef.current?.click()}
-              className="flex h-48 w-full flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-border text-muted-foreground transition-colors hover:border-primary/50 hover:text-foreground"
-            >
-              <ImagePlus className="h-8 w-8" />
-              <span className="text-sm">Subir imagen (JPEG, PNG, WebP · máx. 5MB)</span>
-            </button>
-          )}
-          <input
-            ref={imageInputRef}
-            type="file"
-            accept="image/jpeg,image/png,image/webp"
-            onChange={handleImageChange}
-            className="hidden"
-            aria-label="Subir imagen de portada"
-          />
+          <ImageCropPicker ref={cropPickerRef} />
         </div>
 
         {/* Título */}

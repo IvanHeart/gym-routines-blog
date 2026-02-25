@@ -20,7 +20,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { profileSchema, type ProfileFormValues } from '@/lib/validations/profile'
-import { validateImageFile } from '@/lib/utils/image'
+import { validateImageFile } from '@/lib/utils/image-client'
 import { updateProfileAction } from '@/actions/profile.actions'
 
 interface Profile {

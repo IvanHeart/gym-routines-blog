@@ -1,8 +1,10 @@
+import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
 import type { Category } from '@/types/entities'
 
 export async function getAllCategories(): Promise<Category[]> {
-  const supabase = await createClient()
+  // Uses admin client so it works both in request context and generateStaticParams
+  const supabase = createAdminClient()
   const { data, error } = await supabase
     .from('categories')
     .select('id, name, slug, color, created_at')

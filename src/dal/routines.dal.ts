@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import type { Routine, Difficulty } from '@/types/entities'
 
 const ROUTINE_SELECT = `
@@ -71,7 +72,8 @@ export async function getPublishedRoutines({
 }
 
 export async function getAllPublishedSlugs(): Promise<string[]> {
-  const supabase = await createClient()
+  // Uses admin client so it works in generateStaticParams (no request context)
+  const supabase = createAdminClient()
   const { data, error } = await supabase
     .from('routines')
     .select('slug')
