@@ -112,6 +112,7 @@ export const ImageCropPicker = forwardRef<ImageCropPickerHandle, ImageCropPicker
         if (!dragRef.current.active) return
         e.preventDefault()
         const t = e.touches[0]
+        if (!t) return
         applyDragRef.current(t.clientX, t.clientY)
       }
       el.addEventListener('touchmove', handler, { passive: false })
