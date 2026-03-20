@@ -17,10 +17,12 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet'
 import { cn } from '@/lib/utils'
+import { CartSheet } from '@/components/cart/cart-sheet'
 
 const NAV_LINKS = [
   { href: '/', label: 'Inicio' },
   { href: '/buscar', label: 'Explorar' },
+  { href: '/tienda', label: 'Tienda' },
 ]
 
 export function Navbar() {
@@ -56,6 +58,7 @@ export function Navbar() {
 
         {/* Acciones desktop */}
         <div className="hidden items-center gap-3 md:flex">
+          <CartSheet />
           {user ? (
             <>
               <Button asChild size="sm" variant="default">
@@ -128,6 +131,13 @@ export function Navbar() {
                   >
                     Favoritos
                   </Link>
+                  <Link
+                    href="/dashboard/mis-pedidos"
+                    onClick={() => setMobileOpen(false)}
+                    className="text-sm text-muted-foreground"
+                  >
+                    Mis pedidos
+                  </Link>
                   <button
                     onClick={async () => {
                       setMobileOpen(false)
@@ -185,6 +195,9 @@ function UserMenu({ user }: { user: { email?: string | undefined } }) {
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
           <Link href="/favoritos">Favoritos</Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link href="/dashboard/mis-pedidos">Mis pedidos</Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
           <Link href="/perfil/editar">Editar perfil</Link>
