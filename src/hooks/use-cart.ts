@@ -142,7 +142,8 @@ export function useCart(): UseCartReturn {
             const idx = prev.findIndex((i) => i.productId === productId)
             if (idx >= 0) {
               const updated = [...prev]
-              updated[idx] = { ...updated[idx], quantity: updated[idx].quantity + qty }
+              const existing = updated[idx]!
+              updated[idx] = { ...existing, quantity: existing.quantity + qty }
               return updated
             }
             return [...prev, { ...productInfo, productId, quantity: qty, available: true }]

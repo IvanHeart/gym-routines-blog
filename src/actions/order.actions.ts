@@ -31,7 +31,7 @@ export async function createOrderAction(
   const { data, error } = await adminClient.rpc('create_order', {
     p_user_id: user.id,
     p_shipping_address_id: parsed.data.shipping_address_id,
-    p_notes: parsed.data.notes ?? null,
+    p_notes: parsed.data.notes ?? undefined,
   })
 
   if (error) {
