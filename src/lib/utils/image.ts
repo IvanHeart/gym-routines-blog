@@ -19,3 +19,10 @@ export async function processRoutineImage(buffer: Buffer): Promise<Buffer> {
 export async function processAvatarImage(buffer: Buffer): Promise<Buffer> {
   return sharp(buffer).resize(200, 200, { fit: 'cover' }).webp({ quality: 85 }).toBuffer()
 }
+
+export async function processProductImage(buffer: Buffer): Promise<Buffer> {
+  return sharp(buffer)
+    .resize(800, 800, { fit: 'cover', withoutEnlargement: true })
+    .webp({ quality: 85 })
+    .toBuffer()
+}

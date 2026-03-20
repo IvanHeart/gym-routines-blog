@@ -73,3 +73,16 @@ export interface Favorite {
   routine_id: string
   created_at: string
 }
+
+export type {
+  ProductCategory,
+  Product,
+  ProductImage,
+  Cart,
+  CartItem,
+  ShippingAddress,
+  Order,
+  OrderItem,
+  OrderStatus,
+  LocalCartItem,
+} from './shop'
