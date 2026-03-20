@@ -4,6 +4,7 @@ import { ThemeProvider } from 'next-themes'
 import { Toaster } from 'sonner'
 import { NuqsAdapter } from 'nuqs/adapters/next/app'
 import { SessionProvider } from '@/components/providers/session-provider'
+import { CartProvider } from '@/components/cart/cart-provider'
 import { RegisterSW } from '@/components/pwa/register-sw'
 import { createClient } from '@/lib/supabase/server'
 import { siteConfig } from '@/config/site'
@@ -52,15 +53,17 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
           <NuqsAdapter>
             <SessionProvider user={user}>
-              <a
-                href="#main-content"
-                className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded focus:bg-background focus:px-4 focus:py-2 focus:text-foreground"
-              >
-                Saltar al contenido
-              </a>
-              {children}
-              <Toaster richColors position="top-right" />
-              <RegisterSW />
+              <CartProvider>
+                <a
+                  href="#main-content"
+                  className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded focus:bg-background focus:px-4 focus:py-2 focus:text-foreground"
+                >
+                  Saltar al contenido
+                </a>
+                {children}
+                <Toaster richColors position="top-right" />
+                <RegisterSW />
+              </CartProvider>
             </SessionProvider>
           </NuqsAdapter>
         </ThemeProvider>
