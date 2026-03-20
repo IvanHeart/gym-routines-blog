@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { BookOpen, MessageSquare, Tag, Users } from 'lucide-react'
+import { BookOpen, MessageSquare, Tag, Users, ShoppingBag, ClipboardList } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
 
@@ -14,12 +14,15 @@ export const metadata: Metadata = {
 export default async function AdminPage() {
   const supabase = await createClient()
 
-  const [routinesRes, commentsRes, categoriesRes, usersRes] = await Promise.all([
-    supabase.from('routines').select('*', { count: 'exact', head: true }).is('deleted_at', null),
-    supabase.from('comments').select('*', { count: 'exact', head: true }).is('deleted_at', null),
-    supabase.from('categories').select('*', { count: 'exact', head: true }),
-    supabase.from('profiles').select('*', { count: 'exact', head: true }),
-  ])
+  const [routinesRes, commentsRes, categoriesRes, usersRes, productsRes, ordersRes] =
+    await Promise.all([
+      supabase.from('routines').select('*', { count: 'exact', head: true }).is('deleted_at', null),
+      supabase.from('comments').select('*', { count: 'exact', head: true }).is('deleted_at', null),
+      supabase.from('categories').select('*', { count: 'exact', head: true }),
+      supabase.from('profiles').select('*', { count: 'exact', head: true }),
+      supabase.from('products').select('*', { count: 'exact', head: true }).is('deleted_at', null),
+      supabase.from('orders').select('*', { count: 'exact', head: true }),
+    ])
 
   const stats = [
     { label: 'Rutinas', value: routinesRes.count ?? 0, icon: BookOpen, href: '/admin/rutinas' },
@@ -31,6 +34,8 @@ export default async function AdminPage() {
     },
     { label: 'Categorías', value: categoriesRes.count ?? 0, icon: Tag, href: '/admin/categorias' },
     { label: 'Usuarios', value: usersRes.count ?? 0, icon: Users, href: '#' },
+    { label: 'Productos', value: productsRes.count ?? 0, icon: ShoppingBag, href: '/admin/tienda' },
+    { label: 'Pedidos', value: ordersRes.count ?? 0, icon: ClipboardList, href: '/admin/pedidos' },
   ]
 
   return (
@@ -63,7 +68,7 @@ export default async function AdminPage() {
       </div>
 
       {/* Acciones rápidas */}
-      <div className="mt-10 grid gap-4 sm:grid-cols-3">
+      <div className="mt-10 grid gap-4 sm:grid-cols-3 lg:grid-cols-5">
         <Button asChild variant="outline">
           <Link href="/admin/categorias">
             <Tag className="mr-2 h-4 w-4" />
@@ -80,6 +85,18 @@ export default async function AdminPage() {
           <Link href="/admin/rutinas">
             <BookOpen className="mr-2 h-4 w-4" />
             Gestionar rutinas
+          </Link>
+        </Button>
+        <Button asChild variant="outline">
+          <Link href="/admin/tienda">
+            <ShoppingBag className="mr-2 h-4 w-4" />
+            Gestionar tienda
+          </Link>
+        </Button>
+        <Button asChild variant="outline">
+          <Link href="/admin/pedidos">
+            <ClipboardList className="mr-2 h-4 w-4" />
+            Ver pedidos
           </Link>
         </Button>
       </div>
