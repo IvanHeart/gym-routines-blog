@@ -1,30 +1,45 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { GoogleGenerativeAI } from '@google/generative-ai'
+import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
 import { buildSystemPrompt, type ProductForAI } from '@/lib/ai/build-system-prompt'
 
-interface ChatMessage {
-  role: 'user' | 'model'
-  text: string
-}
+const ChatMessageSchema = z.object({
+  role: z.enum(['user', 'model']),
+  text: z.string(),
+})
+
+const RequestBodySchema = z.object({
+  messages: z.array(ChatMessageSchema).min(1),
+})
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
-    const messages: ChatMessage[] = body.messages
+    const parsed = RequestBodySchema.safeParse(body)
 
-    if (!Array.isArray(messages) || messages.length === 0) {
+    if (!parsed.success) {
       return NextResponse.json({ error: 'messages requeridos' }, { status: 400 })
+    }
+
+    const { messages } = parsed.data
+
+    const apiKey = process.env.GEMINI_API_KEY
+    if (!apiKey) {
+      console.error('[AI Chat] GEMINI_API_KEY is not set')
+      return NextResponse.json({ error: 'Error de configuración del servidor' }, { status: 500 })
     }
 
     // Fetch published products (name, slug, description, price, brand only)
     const supabase = await createClient()
-    const { data: products } = await supabase
+    const { data: products, error: dbError } = await supabase
       .from('products')
       .select('name, slug, description, price, brand')
       .eq('published', true)
       .is('deleted_at', null)
       .order('name')
+
+    if (dbError) throw dbError
 
     const systemPrompt = buildSystemPrompt((products ?? []) as ProductForAI[])
 
@@ -47,7 +62,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'No hay mensajes del usuario' }, { status: 400 })
     }
 
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
+    const genAI = new GoogleGenerativeAI(apiKey)
     const model = genAI.getGenerativeModel({
       model: 'gemini-1.5-flash',
       systemInstruction: systemPrompt,
