@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import { usePathname } from 'next/navigation'
 import { MessageCircle, X, Send } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ChatMessage } from '@/components/ai/ChatMessage'
@@ -20,6 +21,7 @@ const WELCOME: Message = {
 }
 
 export function ChatWidget() {
+  const pathname = usePathname()
   const [isOpen, setIsOpen] = useState(false)
   const [messages, setMessages] = useState<Message[]>([WELCOME])
   const [input, setInput] = useState('')
@@ -29,6 +31,8 @@ export function ChatWidget() {
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
+
+  if (pathname.startsWith('/admin')) return null
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()

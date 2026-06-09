@@ -15,6 +15,8 @@ export default defineConfig({
       // 'next/link' shim: next/dist/client/link.js is not bundled in this install;
       // this alias replaces it globally in the test environment with a plain <a> shim.
       'next/link': path.resolve(__dirname, './src/test/__mocks__/next/link.tsx'),
+      // 'next/navigation' shim: provides usePathname and other router hooks for jsdom.
+      'next/navigation': path.resolve(__dirname, './src/test/__mocks__/next/navigation.ts'),
     },
   },
 })

@@ -6,11 +6,11 @@ import { buildSystemPrompt, type ProductForAI } from '@/lib/ai/build-system-prom
 
 const ChatMessageSchema = z.object({
   role: z.enum(['user', 'model']),
-  text: z.string(),
+  text: z.string().min(1).max(2000),
 })
 
 const RequestBodySchema = z.object({
-  messages: z.array(ChatMessageSchema).min(1),
+  messages: z.array(ChatMessageSchema).min(1).max(50),
 })
 
 export async function POST(req: NextRequest) {
