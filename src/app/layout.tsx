@@ -6,6 +6,7 @@ import { NuqsAdapter } from 'nuqs/adapters/next/app'
 import { SessionProvider } from '@/components/providers/session-provider'
 import { CartProvider } from '@/components/cart/cart-provider'
 import { RegisterSW } from '@/components/pwa/register-sw'
+import { ChatWidget } from '@/components/ai/ChatWidget'
 import { createClient } from '@/lib/supabase/server'
 import { siteConfig } from '@/config/site'
 import './globals.css'
@@ -63,6 +64,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 {children}
                 <Toaster richColors position="top-right" />
                 <RegisterSW />
+                <ChatWidget />
               </CartProvider>
             </SessionProvider>
           </NuqsAdapter>
