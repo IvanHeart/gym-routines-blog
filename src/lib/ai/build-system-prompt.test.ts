@@ -36,10 +36,15 @@ describe('buildSystemPrompt', () => {
     expect(prompt).toContain('Sin marca')
   })
 
-  it('includes product price', () => {
+  it('includes product price formatted with formatPrice', () => {
     const prompt = buildSystemPrompt(products)
-    expect(prompt).toContain('599')
-    expect(prompt).toContain('299')
+    expect(prompt).toContain('$599.00')
+    expect(prompt).toContain('$299.00')
+  })
+
+  it('returns a valid prompt with a note when the product list is empty', () => {
+    const prompt = buildSystemPrompt([])
+    expect(prompt).toContain('No hay productos disponibles actualmente.')
   })
 
   it('returns the rules section restricting off-topic responses', () => {

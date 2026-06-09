@@ -1,3 +1,5 @@
+import { formatPrice } from '@/lib/utils/currency'
+
 export interface ProductForAI {
   name: string
   slug: string
@@ -7,12 +9,15 @@ export interface ProductForAI {
 }
 
 export function buildSystemPrompt(products: ProductForAI[]): string {
-  const catalog = products
-    .map(
-      (p) =>
-        `- ${p.name} (${p.brand ?? 'Sin marca'}) | Precio: $${p.price} | Link: /tienda/${p.slug}\n  Descripción: ${p.description}`
-    )
-    .join('\n')
+  const catalog =
+    products.length === 0
+      ? 'No hay productos disponibles actualmente.'
+      : products
+          .map(
+            (p) =>
+              `- ${p.name} (${p.brand ?? 'Sin marca'}) | Precio: ${formatPrice(p.price)} | Link: /tienda/${p.slug}\n  Descripción: ${p.description}`
+          )
+          .join('\n')
 
   return `Eres un asesor de ventas experto del gimnasio. Tu único objetivo es recomendar productos de nuestra tienda según las metas y necesidades del usuario.
 
