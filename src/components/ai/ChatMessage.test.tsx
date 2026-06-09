@@ -30,6 +30,19 @@ describe('ChatMessage', () => {
     expect(screen.getByText(/aquí\./)).toBeInTheDocument()
   })
 
+  it('renders multiple /tienda/ links in a single message', () => {
+    render(
+      <ChatMessage
+        role="model"
+        text="Prueba /tienda/proteina-whey y también /tienda/creatina para mejores resultados."
+      />
+    )
+    const links = screen.getAllByRole('link')
+    expect(links).toHaveLength(2)
+    expect(links[0]).toHaveAttribute('href', '/tienda/proteina-whey')
+    expect(links[1]).toHaveAttribute('href', '/tienda/creatina')
+  })
+
   it('applies different styles for user vs model messages', () => {
     const { rerender, container } = render(
       <ChatMessage role="user" text="Mensaje de usuario" />
