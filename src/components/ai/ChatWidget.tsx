@@ -4,14 +4,17 @@ import { useState, useRef, useEffect } from 'react'
 import { MessageCircle, X, Send } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ChatMessage } from '@/components/ai/ChatMessage'
-import { cn } from '@/lib/utils'
+
+let msgCounter = 0
 
 interface Message {
+  id: number
   role: 'user' | 'model'
   text: string
 }
 
 const WELCOME: Message = {
+  id: msgCounter++,
   role: 'model',
   text: '¡Hola! Soy tu asesor de ventas del gimnasio. Cuéntame tus metas de entrenamiento y te recomendaré los productos perfectos para ti. 💪',
 }
@@ -32,7 +35,7 @@ export function ChatWidget() {
     const text = input.trim()
     if (!text || isLoading) return
 
-    const userMessage: Message = { role: 'user', text }
+    const userMessage: Message = { id: msgCounter++, role: 'user', text }
     const next = [...messages, userMessage]
     setMessages(next)
     setInput('')
@@ -46,11 +49,12 @@ export function ChatWidget() {
       })
       if (!res.ok) throw new Error('bad response')
       const { reply } = await res.json()
-      setMessages((prev) => [...prev, { role: 'model', text: reply }])
+      setMessages((prev) => [...prev, { id: msgCounter++, role: 'model', text: reply }])
     } catch {
       setMessages((prev) => [
         ...prev,
         {
+          id: msgCounter++,
           role: 'model',
           text: 'Lo siento, ocurrió un error. Por favor intenta de nuevo.',
         },
@@ -77,8 +81,8 @@ export function ChatWidget() {
           </div>
 
           <div className="flex-1 space-y-3 overflow-y-auto p-4">
-            {messages.map((msg, i) => (
-              <ChatMessage key={i} role={msg.role} text={msg.text} />
+            {messages.map((msg) => (
+              <ChatMessage key={msg.id} role={msg.role} text={msg.text} />
             ))}
             {isLoading && (
               <p className="px-1 text-xs text-muted-foreground">Escribiendo...</p>
