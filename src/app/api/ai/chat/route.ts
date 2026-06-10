@@ -56,15 +56,25 @@ export async function POST(req: NextRequest) {
     }))
 
     const ai = new GoogleGenAI({ apiKey })
-    const result = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents,
-      config: { systemInstruction: systemPrompt },
-    })
 
-    const reply = result.text ?? ''
-
-    return NextResponse.json({ reply })
+    // Retry up to 3 times on 503 (model overloaded), with 1s delay between attempts
+    let lastError: unknown
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        if (attempt > 0) await new Promise((r) => setTimeout(r, 1000 * attempt))
+        const result = await ai.models.generateContent({
+          model: 'gemini-2.5-flash',
+          contents,
+          config: { systemInstruction: systemPrompt },
+        })
+        return NextResponse.json({ reply: result.text ?? '' })
+      } catch (err) {
+        lastError = err
+        const status = (err as { status?: number }).status
+        if (status !== 503) throw err
+      }
+    }
+    throw lastError
   } catch (error) {
     console.error('[AI Chat]', error)
     return NextResponse.json({ error: 'Error al procesar la solicitud' }, { status: 500 })
